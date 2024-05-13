@@ -5,6 +5,9 @@ import { gsap } from 'gsap';
 
   /** const */
 
+  const section = document.querySelector('.character-container')
+  const backBtn = document.querySelector('.character-nav-back')
+
   const raycaster = new THREE.Raycaster()
   const loader = new THREE.ImageLoader();
   const textureLoader = new THREE.TextureLoader();
@@ -53,7 +56,7 @@ import { gsap } from 'gsap';
 
   //** let */
   let currentIntersect = null
-
+  let showDitails = false
 
   //** param */
 
@@ -226,11 +229,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
     const intersects = raycaster.intersectObjects( scene.children );
 
-    if(intersects.length > 0){
         let x = currentMouse.x - prevMouse.x
         if(x > 0.4){
           cards.forEach(card =>{
-            card.x -= 2
+            card.x += 2
             gsap.to(card.card.position,{
               x: card.x,
               duration:1,
@@ -240,15 +242,30 @@ document.addEventListener('DOMContentLoaded', ()=>{
         }
         else if(x < -0.4){
           cards.forEach(card =>{
-            card.x += 2
+            card.x -= 2
             gsap.to(card.card.position,{
               x: card.x,
               duration:1,
             })
           })
+        } 
+        else if ( x <= 0.4 && x >= -0.4){
+          if(showDitails) return 
+          showDitails = true
+          currentIntersect = intersects[0]
+          gsap.to(intersects[0].object.material, {
+            opacity: 0,
+            duration:0.3
+          })
+
+          section.style.display = 'block'
+          gsap.to(section,{
+            opacity:1,
+            duration:0.5
+          })
 
         }
-    }
+    
 
 
   })// touch end
@@ -259,6 +276,18 @@ document.addEventListener('DOMContentLoaded', ()=>{
   window.addEventListener("touchmove",function(e){
     // console.log('touchmove')
   })// touch move
+ backBtn.addEventListener("click",function(e){
+    gsap.to(currentIntersect.object.material, {
+      opacity: 1,
+      duration:0.3
+    })
+
+    gsap.to(section,{
+      opacity:0,
+      duration:0.5
+    })
+    showDitails = false
+  })// click end
 
 
 })//loaded
