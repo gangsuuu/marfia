@@ -2,11 +2,21 @@ import * as THREE from 'three';
 import { degToRad } from 'three/src/math/MathUtils.js';
 import GUI from 'lil-gui';
 import { gsap } from 'gsap';
+import CharacterInfo from './characterInfo.js';
+  
+/** const */
 
-  /** const */
+  const characterInfo = new CharacterInfo()
 
   const section = document.querySelector('.character-container')
   const backBtn = document.querySelector('.character-nav-back')
+
+  const job = document.querySelector('.character-job')
+  const skill = document.querySelector('.character-skillDetail')
+  const quote = document.querySelector('.character-quote')
+  const scripts = document.querySelector('.character-scripts')
+  const navIcons = document.querySelectorAll('.character-nav-li')
+
 
   const raycaster = new THREE.Raycaster()
   const loader = new THREE.ImageLoader();
@@ -28,6 +38,7 @@ import { gsap } from 'gsap';
   ]
   const cards = []
 
+  const jobs = ['mafia','doctor','reporter','shaman','christian','conman','citizen','detective','hidden']
   const currentMouse = {x:0,y:0}
   const prevMouse = {x:0,y:0}
 
@@ -57,6 +68,7 @@ import { gsap } from 'gsap';
   //** let */
   let currentIntersect = null
   let showDitails = false
+  let selectedCard
 
   //** param */
 
@@ -132,7 +144,7 @@ const createCard  = (i) => {
     x : i*a,
     card : frontSide,
   }
-
+  frontSide.name = jobs[i]
   cards.push(card);
   // frontSide.scale.set(0.2,0.2,0.2);
   frontSide.position.x = i*a
@@ -164,6 +176,14 @@ const createCard  = (i) => {
     for(let i = 0; i < cardImgs.length - 1; i++) {
       createCard(i);
     }
+  }
+
+  const showCharacter = (info) => {
+    job.innerHTML = info.job
+    skill.innerHTML = info.job
+    quote.innerHTML = info.job
+    scripts.innerHTML = info.job
+    selectedCard =  info.work
   }
 
    /**
@@ -228,6 +248,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     getMousePoint(e,'end')
 
     const intersects = raycaster.intersectObjects( scene.children );
+        if(showDitails) return 
 
         let x = currentMouse.x - prevMouse.x
         if(x > 0.4){
@@ -250,12 +271,19 @@ document.addEventListener('DOMContentLoaded', ()=>{
           })
         } 
         else if ( x <= 0.4 && x >= -0.4){
-          if(showDitails) return 
+          if(!intersects[0]) return
           showDitails = true
+          let job = intersects[0].object.name
+          console.log(job)
+          let character = characterInfo.selectCharacter(job)
           currentIntersect = intersects[0]
-          gsap.to(intersects[0].object.material, {
-            opacity: 0,
-            duration:0.3
+
+        
+          cards.forEach((card) => {
+            gsap.to(card.card.material, {
+              opacity: 0,
+              duration:0.3
+            })
           })
 
           section.style.display = 'block'
@@ -264,30 +292,47 @@ document.addEventListener('DOMContentLoaded', ()=>{
             duration:0.5
           })
 
+          showCharacter(character)
         }
-    
-
-
   })// touch end
 
   /**
    * touchmove event
    */
   window.addEventListener("touchmove",function(e){
-    // console.log('touchmove')
+
   })// touch move
  backBtn.addEventListener("click",function(e){
-    gsap.to(currentIntersect.object.material, {
-      opacity: 1,
-      duration:0.3
+    cards.forEach((card) => {
+      gsap.to(card.card.material, {
+        opacity: 1,
+        duration:0.3
+      })
     })
-
     gsap.to(section,{
       opacity:0,
       duration:0.5
     })
+    let number = jobs.indexOf(selectedCard)
+    cards.forEach((card,index) => {
+      card.card.position.x = index*2 - number * 2
+      card.x = index*2 - number * 2
+
+    })
+    
+    
     showDitails = false
   })// click end
 
 
+  navIcons.forEach((icon) => {
+    icon.addEventListener('click',function(e){
+      e.preventDefault();
+      let character = characterInfo.selectCharacter(e.target.children[0].dataset.job)
+      showCharacter(character)
+      
+    })
+  })
+
+  
 })//loaded
