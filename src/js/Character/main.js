@@ -184,6 +184,15 @@ const createCard  = (i) => {
     quote.innerHTML = info.job
     scripts.innerHTML = info.job
     selectedCard =  info.work
+
+    navIcons.forEach((job) => {
+      job.style.transform = 'scale(1.0)'
+      console.log(job.dataset.job, info.work)
+      if(job.children[0].dataset.job === info.work){
+        job.style.transform = 'scale(1.15)'
+      }
+    })
+
   }
 
    /**
@@ -274,11 +283,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
           if(!intersects[0]) return
           showDitails = true
           let job = intersects[0].object.name
-          console.log(job)
           let character = characterInfo.selectCharacter(job)
           currentIntersect = intersects[0]
 
-        
+
           cards.forEach((card) => {
             gsap.to(card.card.material, {
               opacity: 0,

@@ -347,10 +347,15 @@ body {
 }
 
 .character-nav-li {
-	width: 35px;
-	height: 35px;
+	width: 32px;
+	height: 32px;
 	background-color: aqua;
 	border-radius: 50%;
+	transition-duration: 0.2s;
+}
+
+.character-active {
+    transform: scale(1.15);
 }
 
 .character-cardImageWrapper{
