@@ -11,6 +11,7 @@ import CharacterInfo from './characterInfo.js';
   const section = document.querySelector('.character-container')
   const backBtn = document.querySelector('.character-nav-back')
 
+  const videoWrapper = document.querySelector('.character-cardImages')
   const job = document.querySelector('.character-job')
   const skill = document.querySelector('.character-skillDetail')
   const quote = document.querySelector('.character-quote')
@@ -28,7 +29,6 @@ import CharacterInfo from './characterInfo.js';
   '/public/assets/images/card/characterCard_08.png',
   '/public/assets/images/card/characterCard_09.png',
   '/public/assets/images/card/characterCard_10.png',
-  '/public/assets/images/card/characterCard_11.png',
   '/public/assets/images/card/characterCard_12.png',
   '/public/assets/images/card/characterCard_13.png',
   '/public/assets/images/card/characterCard_15.png',
@@ -38,7 +38,7 @@ import CharacterInfo from './characterInfo.js';
   ]
   const cards = []
 
-  const jobs = ['mafia','doctor','reporter','shaman','christian','conman','citizen','detective','hidden']
+  const jobs = ['mafia','doctor','reporter','shaman','christian','conman','citizen','detective','police','hidden']
   const currentMouse = {x:0,y:0}
   const prevMouse = {x:0,y:0}
 
@@ -68,6 +68,7 @@ import CharacterInfo from './characterInfo.js';
   //** let */
   let currentIntersect = null
   let showDitails = false
+  let cardAnimation = false
   let selectedCard
 
   //** param */
@@ -128,6 +129,8 @@ const createCard  = (i) => {
   const frontSideMaterial = new THREE.MeshBasicMaterial({
     map:textureLoader.load(cardImgs[i+1]),
     transparent: true,
+    
+    opacity:0,
   })
 
 
@@ -145,6 +148,7 @@ const createCard  = (i) => {
     card : frontSide,
   }
   frontSide.name = jobs[i]
+  console.log(jobs[i])
   cards.push(card);
   // frontSide.scale.set(0.2,0.2,0.2);
   frontSide.position.x = i*a
@@ -173,26 +177,40 @@ const createCard  = (i) => {
 
 
   const enterAnimation = () => {
-    for(let i = 0; i < cardImgs.length - 1; i++) {
+    for(let i = 0; i < jobs.length ; i++) {
       createCard(i);
     }
   }
 
   const showCharacter = (info) => {
     job.innerHTML = info.job
-    skill.innerHTML = info.job
-    quote.innerHTML = info.job
-    scripts.innerHTML = info.job
+    skill.innerHTML = info.skills
+    quote.innerHTML = info.quote
+    scripts.innerHTML = info.scripts
     selectedCard =  info.work
 
     navIcons.forEach((job) => {
       job.style.transform = 'scale(1.0)'
-      console.log(job.dataset.job, info.work)
       if(job.children[0].dataset.job === info.work){
         job.style.transform = 'scale(1.15)'
       }
     })
 
+    videoWrapper.innerHTML = ''
+    const video = document.createElement('video')
+    video.classList.add('character-video')
+    video.src  =`/public/assets/videos/mafia_${selectedCard}.mp4`
+    
+    const videoInterfaceWrapper = document.createElement('div')
+    videoInterfaceWrapper.classList.add('character-video-interfaceWapper')
+    const playBtn = document.createElement('div')
+    playBtn.classList.add('character-video-playBtn')
+    
+    
+    videoInterfaceWrapper.appendChild(playBtn)
+    videoWrapper.appendChild(video)
+    videoWrapper.appendChild(videoInterfaceWrapper)
+    // video.play()
   }
 
    /**
@@ -258,24 +276,48 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
     const intersects = raycaster.intersectObjects( scene.children );
         if(showDitails) return 
-
+        if(cardAnimation) return
         let x = currentMouse.x - prevMouse.x
+        cardAnimation = true
         if(x > 0.4){
           cards.forEach(card =>{
-            card.x += 2
-            gsap.to(card.card.position,{
-              x: card.x,
-              duration:1,
-            })
+            
+            if(card.x >= 17){
+              card.card.position.x = -2
+              card.x = 0
+              gsap.to(card.card.position,{
+                x: card.x,
+                duration:0.3,
+              })
+            } else {
+              card.x += 2
+              gsap.to(card.card.position,{
+                x: card.x,
+                duration:0.3, 
+                onComplete: () =>{
+                  cardAnimation = false
+                }
+              })
+            }
           })
-          
         }
         else if(x < -0.4){
           cards.forEach(card =>{
+            if(card.x <= -0.1){
+              card.card.position.x = 20
+              card.x = 18
+              gsap.to(card.card.position,{
+                x: card.x,
+                duration:0.3,
+              })
+            }
             card.x -= 2
             gsap.to(card.card.position,{
               x: card.x,
-              duration:1,
+              duration:0.3,
+              onComplete: () =>{
+                cardAnimation = false
+              }
             })
           })
         } 
@@ -299,7 +341,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
             opacity:1,
             duration:0.5
           })
-
           showCharacter(character)
         }
   })// touch end
@@ -323,12 +364,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
     })
     let number = jobs.indexOf(selectedCard)
     cards.forEach((card,index) => {
-      card.card.position.x = index*2 - number * 2
+      card.card.position.x = index * 2 - number * 2
       card.x = index*2 - number * 2
 
     })
     
-    
+    cardAnimation = false
     showDitails = false
   })// click end
 
